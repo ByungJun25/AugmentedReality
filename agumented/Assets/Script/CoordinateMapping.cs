@@ -23,19 +23,55 @@ public class CoordinateMapping : MonoBehaviour
         Infrared
     }
 
+    private Dictionary<Kinect.JointType, Kinect.JointType> _BoneMap = new Dictionary<Kinect.JointType, Kinect.JointType>()
+    {
+        { Kinect.JointType.FootLeft, Kinect.JointType.AnkleLeft },
+        { Kinect.JointType.AnkleLeft, Kinect.JointType.KneeLeft },
+        { Kinect.JointType.KneeLeft, Kinect.JointType.HipLeft },
+        { Kinect.JointType.HipLeft, Kinect.JointType.SpineBase },
+
+        { Kinect.JointType.FootRight, Kinect.JointType.AnkleRight },
+        { Kinect.JointType.AnkleRight, Kinect.JointType.KneeRight },
+        { Kinect.JointType.KneeRight, Kinect.JointType.HipRight },
+        { Kinect.JointType.HipRight, Kinect.JointType.SpineBase },
+
+        { Kinect.JointType.HandTipLeft, Kinect.JointType.HandLeft },
+        { Kinect.JointType.ThumbLeft, Kinect.JointType.HandLeft },
+        { Kinect.JointType.HandLeft, Kinect.JointType.WristLeft },
+        { Kinect.JointType.WristLeft, Kinect.JointType.ElbowLeft },
+        { Kinect.JointType.ElbowLeft, Kinect.JointType.ShoulderLeft },
+        { Kinect.JointType.ShoulderLeft, Kinect.JointType.SpineShoulder },
+
+        { Kinect.JointType.HandTipRight, Kinect.JointType.HandRight },
+        { Kinect.JointType.ThumbRight, Kinect.JointType.HandRight },
+        { Kinect.JointType.HandRight, Kinect.JointType.WristRight },
+        { Kinect.JointType.WristRight, Kinect.JointType.ElbowRight },
+        { Kinect.JointType.ElbowRight, Kinect.JointType.ShoulderRight },
+        { Kinect.JointType.ShoulderRight, Kinect.JointType.SpineShoulder },
+
+        { Kinect.JointType.SpineBase, Kinect.JointType.SpineMid },
+        { Kinect.JointType.SpineMid, Kinect.JointType.SpineShoulder },
+        { Kinect.JointType.SpineShoulder, Kinect.JointType.Neck },
+        { Kinect.JointType.Neck, Kinect.JointType.Head },
+    };
+
     // Use this for initialization
     void Start()
     {
+        GameObject body = new GameObject("SkeletonBody");
         glist = new List<GameObject>();
-        for (count = 0; count < MAXJOINT; count++)
+        for (Kinect.JointType jt = Kinect.JointType.SpineBase; jt <= Kinect.JointType.ThumbRight; jt++)
         {
-            if(prefab == null)
+            if (prefab == null)
             {
                 Debug.Log("There isn't prefab.");
                 break;
             }
-            glist.Add((GameObject)Instantiate(prefab));
-            //glist.Add(GameObject.Instantiate(AssetDatabase.LoadAssetAtPath("Assets/pref/Cube.prefab", typeof(GameObject))) as GameObject);
+            GameObject jointObj = (GameObject)Instantiate(prefab);
+            jointObj.name = jt.ToString();
+            jointObj.transform.parent = body.transform;
+
+            glist.Add(jointObj);
         }
         OnJointMeshRenderer(offMeshRenderer, glist);
         _sensor = KinectSensor.GetDefault();
