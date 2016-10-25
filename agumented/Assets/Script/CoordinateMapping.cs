@@ -11,8 +11,8 @@ public class CoordinateMapping : MonoBehaviour
     private IList<Body> _bodies;
     private CameraMode _mode = CameraMode.Color;
     private List<GameObject> glist;
-    public int count;
-    public int MAXJOINT;
+    private int count = 0;
+    public int MAXJOINT = 20;
     public GameObject prefab;
     public bool offMeshRenderer = false;
 
@@ -26,8 +26,6 @@ public class CoordinateMapping : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        count = 0;
-        MAXJOINT = 25;
         glist = new List<GameObject>();
         for (count = 0; count < MAXJOINT; count++)
         {
