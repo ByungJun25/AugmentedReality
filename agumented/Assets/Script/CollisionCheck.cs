@@ -8,12 +8,12 @@ public class CollisionCheck : MonoBehaviour {
     public GameObject CollisionObject;
     private static bool check;
 
-    void start()
+    void Start()
     {
 
     }
     
-    void update()
+    void Update()
     {
 
     }

@@ -24,7 +24,7 @@ public class FollowJoint : MonoBehaviour {
 
     }
 
-    void update()
+    void Update()
     {
         if (bodyManager == null)
         {

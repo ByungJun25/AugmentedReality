@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Windows.Kinect;
 using Kinect = Windows.Kinect;
+using UnityEditor;
 
 public class BodySourceView : MonoBehaviour 
 {
@@ -42,7 +44,38 @@ public class BodySourceView : MonoBehaviour
         { Kinect.JointType.SpineShoulder, Kinect.JointType.Neck },
         { Kinect.JointType.Neck, Kinect.JointType.Head },
     };
-    
+
+    KinectSensor _sensor;
+    MultiSourceFrameReader _reader;
+    IList<Body> _bodies;
+    CameraMode _mode = CameraMode.Color;
+    List<GameObject> glist;
+    int i;
+    enum CameraMode
+    {
+        Color,
+        Depth,
+        Infrared
+    }
+
+    void Start()
+    {
+        i = 0;
+        glist = new List<GameObject>();
+        for(i =0; i<40; i++)
+        {
+            glist.Add(GameObject.Instantiate(AssetDatabase.LoadAssetAtPath("Assets/pref/Cube.prefab", typeof(GameObject))) as GameObject);
+        }
+        _sensor = KinectSensor.GetDefault();
+        if (_sensor != null)
+        {
+            _sensor.Open();
+
+            _reader = _sensor.OpenMultiSourceFrameReader(FrameSourceTypes.Color | FrameSourceTypes.Depth | FrameSourceTypes.Infrared | FrameSourceTypes.Body);
+            _reader.MultiSourceFrameArrived += Reader_MultiSourceFrameArrived;
+        }
+    }
+
     void Update () 
     {
         if (BodySourceManager == null)
@@ -124,7 +157,6 @@ public class BodySourceView : MonoBehaviour
             jointObj.name = jt.ToString();
             jointObj.transform.parent = body.transform;
         }
-        
         return body;
     }
     
@@ -175,5 +207,60 @@ public class BodySourceView : MonoBehaviour
     private static Vector3 GetVector3FromJoint(Kinect.Joint joint)
     {
         return new Vector3(joint.Position.X * 10, joint.Position.Y * 10, joint.Position.Z * 10);
+    }
+
+    void Reader_MultiSourceFrameArrived(object sender, MultiSourceFrameArrivedEventArgs e)
+    {
+        var reference = e.FrameReference.AcquireFrame();
+
+        // Body
+        using (var frame = reference.BodyFrameReference.AcquireFrame())
+        {
+            if (frame != null)
+            {
+                if(i > 23)
+                {
+                    i = 0;
+                }
+                _bodies = new Body[frame.BodyFrameSource.BodyCount];
+
+                frame.GetAndRefreshBodyData(_bodies);
+                foreach (var body in _bodies)
+                {
+                    if (body.IsTracked)
+                    {
+                        // COORDINATE MAPPING
+                        foreach (Kinect.Joint joint in body.Joints.Values)
+                        {
+                            if (joint.TrackingState == TrackingState.Tracked)
+                            {
+                                // 3D space point
+                                CameraSpacePoint jointPosition = joint.Position;
+
+                                // 2D space point
+                                Vector2 point = new Vector2();
+
+                                if (_mode == CameraMode.Color)
+                                {
+                                    ColorSpacePoint colorPoint = _sensor.CoordinateMapper.MapCameraPointToColorSpace(jointPosition);
+
+                                    point.x = float.IsInfinity(colorPoint.X) ? 0 : colorPoint.X;
+                                    point.y = float.IsInfinity(colorPoint.Y) ? 0 : colorPoint.Y;
+                                }
+                                else if (_mode == CameraMode.Depth || _mode == CameraMode.Infrared) // Change the Image and Canvas dimensions to 512x424
+                                {
+                                    Debug.Log("test5");
+                                    DepthSpacePoint depthPoint = _sensor.CoordinateMapper.MapCameraPointToDepthSpace(jointPosition);
+
+                                    point.x = float.IsInfinity(depthPoint.X) ? 0 : depthPoint.X;
+                                    point.y = float.IsInfinity(depthPoint.Y) ? 0 : depthPoint.Y;
+                                }
+                                glist[i++].transform.position = new Vector3(point.x, -point.y);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
