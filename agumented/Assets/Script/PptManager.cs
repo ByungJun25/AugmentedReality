@@ -3,7 +3,7 @@ using System.Collections;
 using Windows.Kinect;
 
 public class PptManager : MonoBehaviour {
-
+/*
     public GameObject Left;
     private CollisionCheck L_colCheck;
     private bool Leftbool;
@@ -76,4 +76,5 @@ public class PptManager : MonoBehaviour {
         }
 
     }
+    */
 }

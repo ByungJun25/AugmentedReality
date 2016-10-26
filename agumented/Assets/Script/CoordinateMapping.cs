@@ -12,9 +12,10 @@ public class CoordinateMapping : MonoBehaviour
     private CameraMode _mode = CameraMode.Color;
     private List<GameObject> glist;
     private int count = 0;
-    public int MAXJOINT = 20;
+    public int MAXJOINT = 25;
     public GameObject prefab;
     public bool offMeshRenderer = false;
+    public JointType TrackedJoint;
 
     enum CameraMode
     {
@@ -22,38 +23,6 @@ public class CoordinateMapping : MonoBehaviour
         Depth,
         Infrared
     }
-
-    private Dictionary<Kinect.JointType, Kinect.JointType> _BoneMap = new Dictionary<Kinect.JointType, Kinect.JointType>()
-    {
-        { Kinect.JointType.FootLeft, Kinect.JointType.AnkleLeft },
-        { Kinect.JointType.AnkleLeft, Kinect.JointType.KneeLeft },
-        { Kinect.JointType.KneeLeft, Kinect.JointType.HipLeft },
-        { Kinect.JointType.HipLeft, Kinect.JointType.SpineBase },
-
-        { Kinect.JointType.FootRight, Kinect.JointType.AnkleRight },
-        { Kinect.JointType.AnkleRight, Kinect.JointType.KneeRight },
-        { Kinect.JointType.KneeRight, Kinect.JointType.HipRight },
-        { Kinect.JointType.HipRight, Kinect.JointType.SpineBase },
-
-        { Kinect.JointType.HandTipLeft, Kinect.JointType.HandLeft },
-        { Kinect.JointType.ThumbLeft, Kinect.JointType.HandLeft },
-        { Kinect.JointType.HandLeft, Kinect.JointType.WristLeft },
-        { Kinect.JointType.WristLeft, Kinect.JointType.ElbowLeft },
-        { Kinect.JointType.ElbowLeft, Kinect.JointType.ShoulderLeft },
-        { Kinect.JointType.ShoulderLeft, Kinect.JointType.SpineShoulder },
-
-        { Kinect.JointType.HandTipRight, Kinect.JointType.HandRight },
-        { Kinect.JointType.ThumbRight, Kinect.JointType.HandRight },
-        { Kinect.JointType.HandRight, Kinect.JointType.WristRight },
-        { Kinect.JointType.WristRight, Kinect.JointType.ElbowRight },
-        { Kinect.JointType.ElbowRight, Kinect.JointType.ShoulderRight },
-        { Kinect.JointType.ShoulderRight, Kinect.JointType.SpineShoulder },
-
-        { Kinect.JointType.SpineBase, Kinect.JointType.SpineMid },
-        { Kinect.JointType.SpineMid, Kinect.JointType.SpineShoulder },
-        { Kinect.JointType.SpineShoulder, Kinect.JointType.Neck },
-        { Kinect.JointType.Neck, Kinect.JointType.Head },
-    };
 
     // Use this for initialization
     void Start()
@@ -135,7 +104,7 @@ public class CoordinateMapping : MonoBehaviour
                                     point.x = float.IsInfinity(depthPoint.X) ? 0 : depthPoint.X;
                                     point.y = float.IsInfinity(depthPoint.Y) ? 0 : depthPoint.Y;
                                 }
-                                glist[count++].transform.position = new Vector3(point.x, -point.y);
+                                glist[count++].transform.position = new Vector3(point.x, -point.y, -1.0f);
                             }
                         }
                     }
