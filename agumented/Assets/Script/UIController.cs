@@ -10,6 +10,8 @@ public class UIController : MonoBehaviour {
     public TriggerChecker RighttriggerChecker;
 
     GameObject[] pictures;
+    GameObject Cube;
+    private bool CubeState = false;
     private int pageNum = 0;
     private int tiltDir = -1;
     private bool isTilt = true;
@@ -25,6 +27,9 @@ public class UIController : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+
+        Cube = GameObject.FindGameObjectWithTag("Cube");
+
         pageNum = 0;
         tiltDir = -1;
         if (CentertriggerChecker == null || UptriggerChecker == null || DowntriggerChecker == null || LefttriggerChecker == null || RighttriggerChecker == null)
@@ -47,7 +52,8 @@ public class UIController : MonoBehaviour {
             Debug.Log("UI Object is NULL");
         }
         UI.transform.position = GameObject.Find("SpineMid").transform.position + new Vector3(-200.0f, 0.0f, 0.0f);
-        
+        Cube.transform.position = GameObject.Find("HandLeft").transform.position + new Vector3(-200.0f, 0.0f, 0.0f);
+
     }
     
     void OnEvent(int UItype)
@@ -85,6 +91,7 @@ public class UIController : MonoBehaviour {
     }
     void UpButtonAction()
     {
+        CubeController();
         Debug.Log("UpButtonAction");
     }
     void DownButtonAction()
@@ -183,5 +190,19 @@ public class UIController : MonoBehaviour {
         {
             obj.transform.position = initposition - new Vector3(300.0f, 0.0f, 0.0f);
         }
+    }
+
+    void CubeController()
+    {
+        if (CubeState)
+        {
+            Cube.SetActive(false);
+            CubeState = false;
+        }
+        else
+        {
+            Cube.SetActive(true);
+            CubeState = true;
+        }       
     }
 }
