@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Windows.Kinect;
 using Kinect = Windows.Kinect;
-using UnityEditor;
+//using UnityEditor;
 
 public class CoordinateMapping : MonoBehaviour
 {

@@ -13,7 +13,7 @@ public class TriggerChecker : MonoBehaviour {
         Left = 3,
         Right = 4
     }
-    public float fLimitTime = 1.0f;
+    public float fLimitTime = 0.5f;
     private float fCheckTime;
     private int UItype;
     private bool isAction = false;

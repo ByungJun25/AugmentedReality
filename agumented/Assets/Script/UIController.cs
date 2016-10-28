@@ -1,7 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using System;
 
 public class UIController : MonoBehaviour {
+
+    public event Action<bool> StartParticle;
+
     public GameObject UI;
     public TriggerChecker CentertriggerChecker;
     public TriggerChecker UptriggerChecker;
@@ -11,10 +16,15 @@ public class UIController : MonoBehaviour {
 
     GameObject[] pictures;
     GameObject Cube;
+
     private bool CubeState = false;
+    
     private int pageNum = 0;
-    private int tiltDir = -1;
     private bool isTilt = true;
+    private bool isParticle = false;
+    private int maximumPage;
+
+    public GameObject picture;
 
     private enum UiType : int
     {
@@ -25,18 +35,44 @@ public class UIController : MonoBehaviour {
         Right = 4
     }
 
+    private enum Direction: int
+    {
+        Forward = 1,
+        Backward = -1,
+        Next = 1,
+        Previous = -1
+    }
+
     // Use this for initialization
     void Start () {
-
         Cube = GameObject.FindGameObjectWithTag("Cube");
-
-        pageNum = 0;
-        tiltDir = -1;
+        if (Cube != null)
+        {
+            Cube.SetActive(false);
+        }
+        else
+        {
+            Debug.Log("Cube is null");
+        }
+        if (UI == null)
+        {
+            Debug.Log("UI Object is NULL");
+        }
+        if (picture != null)
+        {
+            maximumPage = picture.GetComponent<PictureController>().materials.Count;
+        }
+        else
+        {
+            Debug.Log("There is no picture object");
+            maximumPage = 0;
+        }
         if (CentertriggerChecker == null || UptriggerChecker == null || DowntriggerChecker == null || LefttriggerChecker == null || RighttriggerChecker == null)
         {
             Debug.Log("Fill TriggerChecker. please");
         }
-        else {
+        else
+        {
             CentertriggerChecker.StartAction += OnEvent;
             UptriggerChecker.StartAction += OnEvent;
             DowntriggerChecker.StartAction += OnEvent;
@@ -47,13 +83,8 @@ public class UIController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (UI == null)
-        {
-            Debug.Log("UI Object is NULL");
-        }
-        UI.transform.position = GameObject.Find("SpineMid").transform.position + new Vector3(-200.0f, 0.0f, 0.0f);
-        Cube.transform.position = GameObject.Find("HandLeft").transform.position + new Vector3(-200.0f, 0.0f, 0.0f);
-
+        UI.transform.position = GameObject.Find("SpineMid").transform.position + new Vector3(-230.0f, 0.0f, 0.0f);
+        Cube.transform.position = GameObject.Find("HandLeft").transform.position + new Vector3(-5.0f, 0.0f, 0.0f);
     }
     
     void OnEvent(int UItype)
@@ -62,26 +93,30 @@ public class UIController : MonoBehaviour {
         {
             //center
             case (int)UiType.Center:
+                Debug.Log("Center");
                 CenterButtonAction();
                 break;
             //up
             case (int)UiType.Up:
+                Debug.Log("Up");
                 UpButtonAction();
                 break;
             //down
             case (int)UiType.Down:
+                Debug.Log("Down");
                 DownButtonAction();
                 break;
             //left
             case (int)UiType.Left:
+                Debug.Log("Left");
                 LeftButtonAction();
                 break;
             //right
             case (int)UiType.Right:
+                Debug.Log("Right");
                 RightButtonAction();
                 break;
         }
-
     }
 
     void CenterButtonAction()
@@ -96,6 +131,8 @@ public class UIController : MonoBehaviour {
     }
     void DownButtonAction()
     {
+        StartParticle(isParticle);
+        FlipIsParticle();
         Debug.Log("DownButtonAction");
     }
     void LeftButtonAction()
@@ -111,13 +148,13 @@ public class UIController : MonoBehaviour {
 
     IEnumerator NextPage()
     {
-        if(isTilt)
+        if (isTilt)
         {
             TiltImage();
         }
         float fadeTime = transform.GetComponent<Fading>().BeginFade(1);
         yield return new WaitForSeconds(fadeTime);
-        ChangePage(-1);
+        ChangePage((int)Direction.Next);
         fadeTime = transform.GetComponent<Fading>().BeginFade(-1);
         yield return new WaitForSeconds(fadeTime);
     }
@@ -130,40 +167,36 @@ public class UIController : MonoBehaviour {
         }
         float fadeTime = transform.GetComponent<Fading>().BeginFade(1);
         yield return new WaitForSeconds(fadeTime);
-        ChangePage(1);
+        ChangePage((int)Direction.Previous);
         fadeTime = transform.GetComponent<Fading>().BeginFade(-1);
         yield return new WaitForSeconds(fadeTime);
     }
 
     void ChangePage(int direction)
     {
-        //ppt 부분 기
         pageNum += direction;
-        //페이지 교체 소스 넣기
+        if (pageNum < maximumPage && pageNum >= 0)
+        {
+            picture.GetComponent<Renderer>().material.mainTexture = picture.GetComponent<PictureController>().materials[pageNum];
+        }
+        else if (pageNum < 0)
+        {
+            pageNum = 0;
+        }
+        else if(pageNum > maximumPage)
+        {
+            pageNum = maximumPage;
+        }
     }
     void TiltImage()
     {
-        if(tiltDir == 1)
-        {
-            StartCoroutine(DisplayMoved(55));
-            isTilt = true;
-        }
-        else if(tiltDir == -1)
+        if(isTilt)
         {
             StartCoroutine(DisplayMoved(-55));
-            isTilt = false;
         }
-        FlipTiltDir();
-    }
-
-    void FlipTiltDir()
-    {
-        if(tiltDir == 1)
+        else
         {
-            tiltDir = -1;
-        } else if(tiltDir == -1)
-        {
-            tiltDir = 1;
+            StartCoroutine(DisplayMoved(55));
         }
     }
 
@@ -183,13 +216,17 @@ public class UIController : MonoBehaviour {
             obj.transform.rotation = pos;
             yield return 0;
         }
+        FlipIsTlit();
+        //회전 후 위치 재조정
         if (isTilt)
         {
-            obj.transform.position = initposition + new Vector3(300.0f,0.0f,0.0f);
-        } else
-        {
-            obj.transform.position = initposition - new Vector3(300.0f, 0.0f, 0.0f);
+            obj.transform.position = initposition + new Vector3(470.0f, 0.0f, 0.0f);
         }
+        else
+        {
+            obj.transform.position = initposition - new Vector3(470.0f, 0.0f, 0.0f);
+        }
+
     }
 
     void CubeController()
@@ -204,5 +241,26 @@ public class UIController : MonoBehaviour {
             Cube.SetActive(true);
             CubeState = true;
         }       
+    }
+
+    void FlipIsTlit()
+    {
+        isTilt = !isTilt;
+    }
+
+    void FlipIsParticle()
+    {
+        isParticle = !isParticle;
+    }    
+    void FlipDirection(int i_Direction)
+    {
+        if(i_Direction == (int)Direction.Forward)
+        {
+            i_Direction = (int)Direction.Backward;
+        }
+        else if(i_Direction == (int)Direction.Backward)
+        {
+            i_Direction = (int)Direction.Forward;
+        }
     }
 }
